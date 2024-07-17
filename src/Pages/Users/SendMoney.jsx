@@ -5,22 +5,35 @@ import { PiMoneyWavyFill } from "react-icons/pi";
 import { ImSpinner4 } from "react-icons/im";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
+import { useNavigate } from "react-router-dom";
 
 const SendMoney = () => {
   const { user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const axiosSecure = useAxiosSecure();
+  const navigate=useNavigate();
 
   const handleSubmit = async (e) => {
     setLoading(true);
     e.preventDefault();
     const form = e.target;
     const number = form.number.value;
-    const amount = form.amount.value;
+    let amount = form.amount.value;
     const pin = form.pin.value;
+
+    //Conditions:
+
+    if (amount < 50) {
+      setLoading(false);
+      return toast.error("Amount must be more than 50 taka");
+    } else {
+      if (amount > 100) {
+        amount = parseInt(amount) + 5;
+      }
+    }
+
     const transactionInfo = {
       User: user.name,
       UserEmail: user.email,
@@ -28,20 +41,33 @@ const SendMoney = () => {
       amount,
       transactionType: "sendMoney",
       pin,
+      status:"paid"
     };
+
     if (user.balance >= amount) {
       try {
-        const { data } = await axiosSecure.patch(
+        const { data: sendMoneyResponse } = await axiosSecure.patch(
           `/users/sendMoney/${user?.email}`,
           transactionInfo
         );
-        console.log(data);
-        toast.success("Property rejected successfully!");
+        if (sendMoneyResponse.receiverUpdate.modifiedCount > 0) {
+          console.log(sendMoneyResponse.receiverUpdate.modifiedCount);
+    
+          // Post the transaction info to the transactions endpoint
+          const { data: transactionResponse } = await axiosSecure.post("/transactions", transactionInfo);
+          
+          console.log(transactionResponse);
+          
+          // Navigate to user profile and display success message
+          navigate("/user-profile");
+          setLoading(false);
+          toast.success("Transaction Successful!");
+        }
+    
       } catch (err) {
-        toast.error(err.message);
+        toast.error("Invalid Credentials");
+        setLoading(false);
       }
-
-      setLoading(false);
     } else {
       toast.error("Enter a valid amount between your balance");
       setLoading(false);
@@ -49,26 +75,10 @@ const SendMoney = () => {
   };
   return (
     <div className="h-screen w-full flex items-center justify-center bg-red-500">
-      {/* <div className="bg-slate-100 p-8 rounded-xl">
-        <div>
-          <h2 className="text-4xl font-bold text-center">Send Money</h2>
-        </div>
-        <div className="font-semibold text-xl pt-6 space-y-2">
-          <h2>Name : {user.name}</h2>
-          <h2>Email : {user.email}</h2>
-          <h2>Mobile : {user.number}</h2>
-          <h2>Role : {user.role}</h2>
-          <h2>Status : {user.status}</h2>
-        </div>
-
-        <div className="pt-5">
-          <h2 className="font-semibold text-2xl text-center p-2 border-2 border-gray-200 rounded-xl">
-            Balance : {user.balance}.00
-          </h2>
-        </div>
-      </div> */}
       <div className="md:w-1/2 flex items-center justify-center mx-4">
         <div className="bg-white md:px-10 md:py-16 rounded-lg px-6 py-4">
+
+          
           {/* Title */}
 
           <div className="flex flex-col gap-4 font-roboto py-8">
