@@ -43,7 +43,14 @@ const SendMoney = () => {
       pin,
       status:"paid"
     };
-
+    const transInfo = {
+      User: user.name,
+      UserEmail: user.email,
+      sentTo: number,
+      amount,
+      transactionType: "sendMoney",
+      status:"paid"
+    };
     if (user.balance >= amount) {
       try {
         const { data: sendMoneyResponse } = await axiosSecure.patch(
@@ -54,7 +61,7 @@ const SendMoney = () => {
           console.log(sendMoneyResponse.receiverUpdate.modifiedCount);
     
           // Post the transaction info to the transactions endpoint
-          const { data: transactionResponse } = await axiosSecure.post("/transactions", transactionInfo);
+          const { data: transactionResponse } = await axiosSecure.post("/transactions", transInfo);
           
           console.log(transactionResponse);
           
@@ -78,7 +85,7 @@ const SendMoney = () => {
       <div className="md:w-1/2 flex items-center justify-center mx-4">
         <div className="bg-white md:px-10 md:py-16 rounded-lg px-6 py-4">
 
-          
+
           {/* Title */}
 
           <div className="flex flex-col gap-4 font-roboto py-8">
