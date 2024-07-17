@@ -5,54 +5,48 @@ import { PiMoneyWavyFill } from "react-icons/pi";
 import { ImSpinner4 } from "react-icons/im";
 import { useState } from "react";
 import toast from "react-hot-toast";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import useAxiosSecure from "../../Hooks/useAxiosSecure";
 
 const SendMoney = () => {
   const { user } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
-  const [loading,setLoading]=useState(false)
-//   const { mutateAsync } = useMutation({
-//     mutationFn: async (update) => {
-//       const { data } = await useAxiosSecure.patch(
-//         `/users/sendMoney/${user?.email}`,
-//         update
-//       );
-//       return data;
-//     },
-//     onSuccess: (data) => {
-//       console.log(data);
-//       toast.success("User Status updated successfully!");
-//     },
-//   });
+  const [loading, setLoading] = useState(false);
+  const axiosSecure = useAxiosSecure();
 
-
-
-  const handleSubmit=async(e)=>{
+  const handleSubmit = async (e) => {
     setLoading(true);
     e.preventDefault();
     const form = e.target;
-    const number=form.number.value;
-    const amount=form.amount.value;
-    const pin=form.pin.value;
-    const transactionInfo={
-        User:user.name,
-        UserEmail:user.email,
-        sentTo:number,
-        amount,
-        transactionType:"sendMoney",pin
-    }
-    if(user.balance>=amount){
-        const { data } = await useAxiosSecure.patch(`/users/sendMoney/${user?.email}`,transactionInfo);
+    const number = form.number.value;
+    const amount = form.amount.value;
+    const pin = form.pin.value;
+    const transactionInfo = {
+      User: user.name,
+      UserEmail: user.email,
+      sentTo: number,
+      amount,
+      transactionType: "sendMoney",
+      pin,
+    };
+    if (user.balance >= amount) {
+      try {
+        const { data } = await axiosSecure.patch(
+          `/users/sendMoney/${user?.email}`,
+          transactionInfo
+        );
         console.log(data);
-        setLoading(false)
-    }else{
-        toast.error("Enter a valid amount between your balance")
-        setLoading(false)
+        toast.success("Property rejected successfully!");
+      } catch (err) {
+        toast.error(err.message);
+      }
+
+      setLoading(false);
+    } else {
+      toast.error("Enter a valid amount between your balance");
+      setLoading(false);
     }
-    
-  
-  }
+  };
   return (
     <div className="h-screen w-full flex items-center justify-center bg-red-500">
       {/* <div className="bg-slate-100 p-8 rounded-xl">
@@ -78,9 +72,12 @@ const SendMoney = () => {
           {/* Title */}
 
           <div className="flex flex-col gap-4 font-roboto py-8">
-            <h2 className="font-bold text-2xl md:text-4xl text-center ">Send Money</h2>
+            <h2 className="font-bold text-2xl md:text-4xl text-center ">
+              Send Money
+            </h2>
             <h2 className="font-roboto text-gray-700">
-            Effortlessly transfer funds. Enter your credentials to begin sending money securely and swiftly!
+              Effortlessly transfer funds. Enter your credentials to begin
+              sending money securely and swiftly!
             </h2>
           </div>
 
@@ -133,7 +130,7 @@ const SendMoney = () => {
                 </span>
               </div>
               <div className="border border-[#6B6C6C]"></div>
-            </div>                  
+            </div>
             <div>
               <div className="pb-4">
                 <button className="cursor-pointer  text-center font-roboto transition duration-150 font-medium text-lg btn-grad px-8 py-3 w-full">
@@ -145,7 +142,6 @@ const SendMoney = () => {
                 </button>
               </div>
             </div>
-             
           </form>
         </div>
       </div>

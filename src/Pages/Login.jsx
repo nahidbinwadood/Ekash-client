@@ -55,7 +55,7 @@ const Login = () => {
       email,
       pin,
     };
-    console.log(user);
+    
     await mutateAsync(user);
   };
 
